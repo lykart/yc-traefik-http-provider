@@ -1,0 +1,50 @@
+version: '3.7'
+services:
+  traefik:
+    container_name: traefik
+    image: traefik:v3.3
+    command:
+      - "--configFile=/etc/traefik/static.yaml"
+    ports:
+      - 443:443
+    volumes:
+      - /etc/traefik/config-static.yaml:/etc/traefik/config-static.yaml
+      - /etc/traefik/config-dynamic.yaml:/etc/traefik/config-dynamic.yaml
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    depends_on:
+      - yc-provider
+    logging:
+      driver: fluentd
+      options:
+        fluentd-address: localhost:24224
+        tag: traefik.logs
+
+  yc-provider:
+    container_name: yc-provider
+    image: ${IMAGE}
+    environment:
+      CERTIFICATE_ID: ${CERTIFICATE_ID}
+
+  httpbin:
+    image: mccutchen/go-httpbin:v2.9.0
+    environment:
+        - APP_NAME=httpbin
+        - MAX_BODY_SIZE=15728640 # 15 MiB
+    command: [ "/bin/go-httpbin", "-port", "8000" ]
+    ports:
+    - 8000:8000
+
+  fluentbit:
+    container_name: fluentbit
+    # You can find the latest version of the image here:
+    # https://github.com/yandex-cloud/fluent-bit-plugin-yandex/releases
+    image: cr.yandex/yc/fluent-bit-plugin-yandex:v2.1.1-fluent-bit-2.1.7
+    ports:
+      - 24224:24224
+      - 24224:24224/udp
+    restart: always
+    environment:
+      YC_GROUP_ID: ${YC_GROUP_ID}
+    volumes:
+      - /etc/fluentbit/fluentbit.conf:/fluent-bit/etc/fluent-bit.conf
+      - /etc/fluentbit/parsers.conf:/fluent-bit/etc/parsers.conf

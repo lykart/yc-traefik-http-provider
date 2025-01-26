@@ -1,0 +1,13 @@
+http:
+  routers:
+    httpbin:
+      rule: PathPrefix(`/`)
+      service: httpbin
+      entryPoints:
+        - web
+
+  services:
+    httpbin:
+      loadBalancer:
+        servers:
+          - url: http://httpbin:8000
