@@ -10,8 +10,17 @@ resource "yandex_resourcemanager_folder_iam_binding" "logger" {
   ])
   role      = each.value
   folder_id = var.folder_id
-  members   = [
+  members = [
     "serviceAccount:${yandex_iam_service_account.logger.id}",
   ]
+  sleep_after = 5
+}
+
+resource "yandex_resourcemanager_folder_iam_binding" "certs" {
+  folder_id = "b1gbmkj63hnlfu8877sn"
+  members = [
+    "serviceAccount:${yandex_iam_service_account.logger.id}",
+  ]
+  role        = "certificate-manager.certificates.downloader"
   sleep_after = 5
 }

@@ -24,6 +24,7 @@ WORKDIR /app
 
 # Copy the Pre-built binary file from the previous stage
 COPY --from=builder /app/yc-provider .
+COPY ./config.yaml /app/config.yaml
 
 # Command to run the executable
 CMD ["./yc-provider"]

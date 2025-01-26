@@ -1,5 +1,11 @@
 #cloud-config
 write_files:
+  - path: /etc/traefik/config-dynamic.yaml
+    encoding: base64
+    content: ${CONFIG_DYNAMIC}
+  - path: /etc/traefik/config-static.yaml
+    encoding: base64
+    content: ${CONFIG_STATIC}
   - content: |
       [SERVICE]
           Flush         1

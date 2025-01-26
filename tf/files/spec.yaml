@@ -18,12 +18,16 @@ services:
       options:
         fluentd-address: localhost:24224
         tag: traefik.logs
+    networks:
+      - backend
 
   yc-provider:
     container_name: yc-provider
     image: ${IMAGE}
     environment:
       CERTIFICATE_ID: ${CERTIFICATE_ID}
+    networks:
+      - backend
 
   httpbin:
     image: mccutchen/go-httpbin:v2.9.0
@@ -31,8 +35,8 @@ services:
         - APP_NAME=httpbin
         - MAX_BODY_SIZE=15728640 # 15 MiB
     command: [ "/bin/go-httpbin", "-port", "8000" ]
-    ports:
-    - 8000:8000
+    networks:
+      - backend
 
   fluentbit:
     container_name: fluentbit
@@ -48,3 +52,9 @@ services:
     volumes:
       - /etc/fluentbit/fluentbit.conf:/fluent-bit/etc/fluent-bit.conf
       - /etc/fluentbit/parsers.conf:/fluent-bit/etc/parsers.conf
+    networks:
+      - backend
+
+networks:
+  backend:
+    driver: bridge
