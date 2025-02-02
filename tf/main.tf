@@ -2,50 +2,74 @@ data "yandex_compute_image" "coi" {
   family = "container-optimized-image"
 }
 
-resource "yandex_compute_instance" "coi" {
-  name        = "coi-logging"
-  platform_id = "standard-v3"
-  zone        = var.zone
+resource "yandex_compute_instance_group" "coi-traefik-ig" {
+  name = "coi-traefik"
 
-  resources {
-    cores  = 2
-    memory = 2
-  }
+  folder_id          = var.folder_id
+  service_account_id = yandex_iam_service_account.ig-sa.id
+  instance_template {
+    platform_id        = "standard-v3"
+    service_account_id = yandex_iam_service_account.coi.id
+    resources {
+      memory = 2
+      cores  = 2
+    }
+    boot_disk {
+      mode = "READ_WRITE"
+      initialize_params {
+        image_id = data.yandex_compute_image.coi.id
+        size     = 33
+        type     = "network-ssd"
+      }
+    }
+    network_interface {
+      network_id = yandex_vpc_subnet.coi-a.network_id
+      subnet_ids = [yandex_vpc_subnet.coi-a.id]
+    }
 
-  boot_disk {
-    initialize_params {
-      image_id = data.yandex_compute_image.coi.id
+    metadata = {
+      ssh-keys = "ubuntu:${file("~/.ssh/id_rsa.pub")}"
+      docker-compose = templatefile("./files/spec.yaml", {
+        YC_GROUP_ID    = yandex_logging_group.coi.id,
+        TRAEFIK_IMAGE  = local.traefik_image,
+        SIDECAR_IMAGE  = local.sidecar_image,
+        HTTPBIN_IMAGE  = local.httpbin_image,
+        CERTIFICATE_ID = var.certificate_id,
+      })
+      user-data = data.cloudinit_config.user-data.rendered
     }
   }
-  network_interface {
-    subnet_id = yandex_vpc_subnet.coi-a.id
-    nat       = true
-    ipv4      = true
+
+  scale_policy {
+    fixed_scale {
+      size = 2
+    }
   }
 
-  service_account_id = yandex_iam_service_account.logger.id
-
-  metadata = {
-    ssh-keys       = "ubuntu:${file("~/.ssh/id_rsa.pub")}"
-    docker-compose = templatefile("./files/spec.yaml", {
-      YC_GROUP_ID = yandex_logging_group.coi.id,
-      IMAGE       = local.sidecar_image
-      CERTIFICATE_ID = "fpq42a4m5conefk1v43h"
-    })
-    user-data = data.cloudinit_config.user-data.rendered
+  allocation_policy {
+    zones = ["ru-central1-a"]
   }
+
+  deploy_policy {
+    max_unavailable = 1
+    max_creating    = 1
+    max_expansion   = 1
+    max_deleting    = 1
+  }
+
+  load_balancer {
+    target_group_name        = "traefik-target-group"
+    target_group_description = "Целевая группа Network Load Balancer для Traefik"
+  }
+
   depends_on = [
-    yandex_iam_service_account.logger,
+    yandex_iam_service_account.coi,
     yandex_logging_group.coi,
     yandex_vpc_subnet.coi-a,
-    null_resource.build
+    null_resource.build,
+    null_resource.traefik,
+    null_resource.httpbin,
   ]
 }
 
-resource "yandex_vpc_network" "coi" {}
 
-resource "yandex_vpc_subnet" "coi-a" {
-  zone           = var.zone
-  network_id     = "${yandex_vpc_network.coi.id}"
-  v4_cidr_blocks = ["10.5.0.0/24"]
-}

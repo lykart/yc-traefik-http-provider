@@ -14,7 +14,7 @@ RUN go mod download
 COPY . .
 
 # Build the Go app
-RUN go build -o yc-provider ./cmd/yc-provider/main.go
+RUN go build -o yc-provider ./cmd/yc-provider/provider.go
 
 # Run Stage
 FROM alpine:latest

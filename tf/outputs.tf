@@ -1,3 +1,4 @@
-output "vm_ip" {
-  value = yandex_compute_instance.coi.network_interface.0.nat_ip_address
+output "nlb" {
+
+  value = yandex_lb_network_load_balancer.traefik.listener
 }

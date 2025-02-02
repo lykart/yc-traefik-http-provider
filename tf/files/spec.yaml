@@ -2,15 +2,16 @@ version: '3.7'
 services:
   traefik:
     container_name: traefik
-    image: traefik:v3.3
+    image: ${TRAEFIK_IMAGE}
     command:
-      - "--configFile=/etc/traefik/static.yaml"
+      - "--configFile=/etc/traefik/config-static.yaml"
     ports:
       - 443:443
+      - 8080:8080
+      - 80:80
     volumes:
       - /etc/traefik/config-static.yaml:/etc/traefik/config-static.yaml
       - /etc/traefik/config-dynamic.yaml:/etc/traefik/config-dynamic.yaml
-      - /var/run/docker.sock:/var/run/docker.sock:ro
     depends_on:
       - yc-provider
     logging:
@@ -23,14 +24,14 @@ services:
 
   yc-provider:
     container_name: yc-provider
-    image: ${IMAGE}
+    image: ${SIDECAR_IMAGE}
     environment:
       CERTIFICATE_ID: ${CERTIFICATE_ID}
     networks:
       - backend
 
   httpbin:
-    image: mccutchen/go-httpbin:v2.9.0
+    image: ${HTTPBIN_IMAGE}
     environment:
         - APP_NAME=httpbin
         - MAX_BODY_SIZE=15728640 # 15 MiB

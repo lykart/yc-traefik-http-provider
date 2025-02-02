@@ -2,3 +2,4 @@ tf
 key.json
 .env
 terraform.tfstate
+.tfvars

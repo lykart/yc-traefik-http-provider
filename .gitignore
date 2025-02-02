@@ -29,3 +29,6 @@ go.work.sum
 key.json
 .terraform
 terraform.tfstate
+terraform.tfstate.backup
+.tfvars
+environment

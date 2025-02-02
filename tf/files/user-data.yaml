@@ -16,10 +16,15 @@ write_files:
 
       [FILTER]
           Name parser
-          Match app.logs
+          Match traefik.logs
           Key_Name log
-          Parser app_log_parser
+          Parser docker
           Reserve_Data On
+      [FILTER]
+          Name nest
+          Match traefik.logs
+          Operation lift
+          Nested_under log
 
       [INPUT]
           Name              forward
@@ -33,7 +38,7 @@ write_files:
           Match           *
           group_id        ${YC_GROUP_ID}
           message_key     text
-          level_key       severity
+          level_key       level
           default_level   WARN
           authorization   instance-service-account
           resource_type   vm
@@ -42,10 +47,11 @@ write_files:
     path: /etc/fluentbit/fluentbit.conf
   - content: |
       [PARSER]
-          Name   app_log_parser
-          Format regex
-          Regex  ^\[req_id=(?<req_id>[0-9a-fA-F\-]+)\] \[(?<severity>.*)\] (?<code>\d+) (?<text>.*)$
-          Types  code:integer
+        Name        docker
+        Format      json
+        Time_Key    time
+        Time_Format %Y-%m-%dT%H:%M:%S %z
+        Decode_Field_as json log
     path: /etc/fluentbit/parsers.conf
 
 users:

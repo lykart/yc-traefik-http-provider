@@ -6,7 +6,7 @@ import (
 	"net"
 	"net/http"
 
-	"yc-traefik-http-provider/pkg/config"
+	"github.com/nikolaymatrosov/yc-traefik-http-provider/pkg/config"
 
 	"github.com/go-chi/chi/v5"
 	"go.uber.org/fx"
@@ -14,7 +14,7 @@ import (
 
 // NewHTTPServer builds an HTTP server that will begin serving requests
 // when the Fx application starts.
-func NewHTTPServer(lc fx.Lifecycle, cfg *config.Config, mux *chi.Mux) *http.Server {
+func NewHTTPServer(lc fx.Lifecycle, cfg *config.Configuration, mux *chi.Mux) *http.Server {
 	srv := &http.Server{Addr: fmt.Sprintf(`:%d`, cfg.Port), Handler: mux}
 	lc.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {

@@ -1,2 +1,2 @@
 port: 8080
-#sa_key: ./key.json
+#saKeyPath: ./key.json

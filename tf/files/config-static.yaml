@@ -1,20 +1,25 @@
-api:
-  insecure: true
+# You can uncomment the following lines to enable Traefik Dashboard
+# and API. Note that this is not recommended for production use.
+# It will expose the dashboard on the http://<your-ip>:8080/dashboard/
+#api:
+#  insecure: true
 
 entryPoints:
   web:
-    address: :443
+    address: ":443"
 
 providers:
   file:
     filename: /etc/traefik/config-dynamic.yaml
   http:
-    endpoint: http://yc-provider:8080
+    endpoint: http://yc-provider:8080/config
 
 log:
   level: INFO
   format: json
+  noColor: true
 
 accessLog:
   format: json
 
+ping: {}

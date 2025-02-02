@@ -6,25 +6,23 @@ import (
 	"net/http"
 	"strings"
 
-	"yc-traefik-http-provider/pkg/fetcher"
+	"github.com/nikolaymatrosov/yc-traefik-http-provider/pkg/cert"
 )
 
 // DynamicConfigHandler is an http.HandlerFunc that copies its request body
 // back to the response.
 type DynamicConfigHandler struct {
-	fetcher *fetcher.Fetcher
+	certFetcher *cert.Fetcher
 }
 
 // NewDynamicConfigHandler builds a new DynamicConfigHandler.
-func NewDynamicConfigHandler(f *fetcher.Fetcher) *DynamicConfigHandler {
+func NewDynamicConfigHandler(f *cert.Fetcher) *DynamicConfigHandler {
 	return &DynamicConfigHandler{
-		fetcher: f,
+		certFetcher: f,
 	}
 }
 
-type response struct {
-	Tls Tls `json:"tls"`
-}
+type response map[string]interface{}
 
 type Tls struct {
 	Certificates []Certificate `json:"certificates"`
@@ -37,19 +35,16 @@ type Certificate struct {
 
 // Get handles an HTTP request to the /config endpoint.
 func (d *DynamicConfigHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if d.fetcher.CertificateContent == nil {
-		d.fetcher.GetContent(r.Context())
-	}
-
-	resp := response{
-		Tls{
+	resp := map[string]any{}
+	if d.certFetcher.CertificateContent != nil {
+		resp["tls"] = Tls{
 			Certificates: []Certificate{
 				{
-					CertFile: strings.Join(d.fetcher.CertificateContent.CertificateChain, "\n"),
-					KeyFile:  d.fetcher.CertificateContent.PrivateKey,
+					CertFile: strings.Join(d.certFetcher.CertificateContent.CertificateChain, "\n"),
+					KeyFile:  d.certFetcher.CertificateContent.PrivateKey,
 				},
 			},
-		},
+		}
 	}
 
 	jsonData, err := json.Marshal(resp)
@@ -64,8 +59,4 @@ func (d *DynamicConfigHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 		log.Printf("Failed to write response: %v", err)
 		return
 	}
-
-	//if _, err := io.Copy(w, r.Body); err != nil {
-	//	fmt.Fprintln(os.Stderr, "Failed to handle request:", err)
-	//}
 }

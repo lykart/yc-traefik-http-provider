@@ -2,29 +2,30 @@
 # Manual edits may be lost in future updates.
 
 provider "registry.terraform.io/hashicorp/cloudinit" {
-  version = "2.3.2"
+  version = "2.3.5"
   hashes = [
-    "h1:ocyv0lvfyvzW4krenxV5CL4Jq5DiA3EUfoy8DR6zFMw=",
+    "h1:Sf1Lt21oTADbzsnlU38ylpkl8YXP0Beznjcy5F/Yx64=",
   ]
 }
 
 provider "registry.terraform.io/hashicorp/external" {
-  version = "2.3.1"
+  version = "2.3.4"
   hashes = [
-    "h1:gznGscVJ0USxy4CdihpjRKPsKvyGr/zqPvBoFLJTQDc=",
+    "h1:cCabxnWQ5fX1lS7ZqgUzsvWmKZw9FA7NRxAZ94vcTcc=",
   ]
 }
 
 provider "registry.terraform.io/hashicorp/null" {
-  version = "3.2.1"
+  version     = "3.2.3"
+  constraints = ">= 3.2.2"
   hashes = [
-    "h1:ydA0/SNRVB1o95btfshvYsmxA+jZFRZcvKzZSB+4S1M=",
+    "h1:I0Um8UkrMUb81Fxq/dxbr3HLP2cecTH2WMJiwKSrwQY=",
   ]
 }
 
 provider "registry.terraform.io/yandex-cloud/yandex" {
-  version = "0.102.0"
+  version = "0.136.0"
   hashes = [
-    "h1:dHrjFc0wX2HbsnuyfQWkQIV866HiT0wR8Cs4V7h6kRU=",
+    "h1:13TKk6mcYov61J1IUPvczaHnMrK06ldic6Nj7Zslieg=",
   ]
 }

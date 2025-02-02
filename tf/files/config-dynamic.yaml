@@ -5,9 +5,10 @@ http:
       service: httpbin
       entryPoints:
         - web
+      tls: {}
 
   services:
     httpbin:
       loadBalancer:
         servers:
-          - url: http://httpbin:8000
+        - url: http://httpbin:8000
