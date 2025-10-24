@@ -34,3 +34,5 @@ terraform.tfstate.backup
 environment
 
 .DS_Store
+
+dist/

@@ -37,7 +37,7 @@ func NewFetcher(lc fx.Lifecycle, sdk *ycsdk.SDK, cfg *config.Configuration) *Fet
 
 	if f.cfg.Features.CertificateManager.Enabled && f.cfg.Features.CertificateManager.CertificateId != "" {
 		ctx, cancel := context.WithCancel(context.Background())
-		timer := time.NewTicker(30 * time.Second)
+		timer := time.NewTicker(time.Duration(cfg.CertFetchIntervalSeconds) * time.Second)
 		f.getContent(ctx)
 		lc.Append(fx.Hook{
 			OnStart: func(_ context.Context) error {

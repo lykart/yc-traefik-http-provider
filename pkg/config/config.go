@@ -38,10 +38,11 @@ func (f *Features) SetDefaults() {
 }
 
 type Configuration struct {
-	Features  *Features `description:"Configure features." json:"features,omitempty" export:"true"`
-	Port      int       `description:"Port HTTP configuration server listens on." json:"port,omitempty" export:"true"`
-	SAKeyPath string    `description:"Path to the service account key file." json:"saKeyPath,omitempty" export:"true"`
-	LogLevel  string    `json:"logLevel,omitempty" export:"true"`
+	Features                 *Features `description:"Configure features." json:"features,omitempty" export:"true"`
+	Port                     int       `description:"Port HTTP configuration server listens on." json:"port,omitempty" export:"true"`
+	SAKeyPath                string    `description:"Path to the service account key file." json:"saKeyPath,omitempty" export:"true"`
+	CertFetchIntervalSeconds int       `description:"Interval in seconds to fetch certificate content." json:"certFetchIntervalSeconds,omitempty" export:"true"`
+	LogLevel                 string    `json:"logLevel,omitempty" export:"true"`
 }
 
 func (c *Configuration) SetDefaults() {
@@ -54,6 +55,9 @@ func (c *Configuration) SetDefaults() {
 	}
 	if c.LogLevel == "" {
 		c.LogLevel = "info"
+	}
+	if c.CertFetchIntervalSeconds == 0 {
+		c.CertFetchIntervalSeconds = 300
 	}
 }
 

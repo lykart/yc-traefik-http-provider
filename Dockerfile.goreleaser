@@ -1,0 +1,14 @@
+# This Dockerfile is used by GoReleaser
+# It expects the binary to already be built and passed in
+FROM alpine:latest
+
+# Set the Current Working Directory inside the container
+WORKDIR /app
+
+# Copy the Pre-built binary file
+COPY yc-provider .
+COPY config.yaml /app/config.yaml
+
+# Command to run the executable
+CMD ["./yc-provider"]
+
