@@ -1,8 +1,6 @@
 module github.com/nikolaymatrosov/yc-traefik-http-provider
 
-go 1.23.0
-
-toolchain go1.23.5
+go 1.27.0
 
 require (
 	github.com/go-chi/chi/v5 v5.2.0
@@ -14,6 +12,7 @@ require (
 	github.com/ydb-platform/ydb-go-sdk/v3 v3.99.2
 	github.com/ydb-platform/ydb-go-yc v0.12.3
 	go.uber.org/fx v1.23.0
+	google.golang.org/grpc v1.70.0
 )
 
 require (
@@ -50,7 +49,6 @@ require (
 	google.golang.org/genproto v0.0.0-20250127172529-29210b9bc287 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20250127172529-29210b9bc287 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250127172529-29210b9bc287 // indirect
-	google.golang.org/grpc v1.70.0 // indirect
 	google.golang.org/protobuf v1.36.4 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect

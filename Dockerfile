@@ -1,5 +1,5 @@
 # Build Stage
-FROM golang:1.23-alpine AS builder
+FROM golang:1.27-alpine3.24 AS builder
 
 # Set the Current Working Directory inside the container
 WORKDIR /app
@@ -14,10 +14,10 @@ RUN go mod download
 COPY . .
 
 # Build the Go app
-RUN go build -o yc-provider ./cmd/yc-provider/provider.go
+RUN CGO_ENABLED=0 go build -o yc-provider ./cmd/yc-provider/provider.go
 
 # Run Stage
-FROM alpine:latest
+FROM alpine:3.24
 
 # Set the Current Working Directory inside the container
 WORKDIR /app

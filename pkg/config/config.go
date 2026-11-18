@@ -1,15 +1,39 @@
 package config
 
 import (
+	"fmt"
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/spf13/viper"
 )
 
 type CertificateManager struct {
-	Enabled       bool   `description:"Enable certificate manager integration." json:"enabled,omitempty" export:"true"`
-	CertificateId string `description:"ID of the Certificate to fetch." json:"certificateId,omitempty" export:"true"`
+	Enabled        bool     `description:"Enable certificate manager integration." json:"enabled,omitempty" export:"true"`
+	CertificateId  string   `description:"ID of the Certificate to fetch." json:"certificateId,omitempty" export:"true"`
+	CertificateIds []string `description:"IDs of the Certificates to fetch." json:"certificateIds,omitempty" export:"true"`
+}
+
+// IDs returns CertificateId followed by CertificateIds, trimmed and deduplicated.
+func (c *CertificateManager) IDs() []string {
+	if c == nil {
+		return nil
+	}
+	seen := map[string]struct{}{}
+	var ids []string
+	for _, id := range append([]string{c.CertificateId}, c.CertificateIds...) {
+		id = strings.TrimSpace(id)
+		if id == "" {
+			continue
+		}
+		if _, ok := seen[id]; ok {
+			continue
+		}
+		seen[id] = struct{}{}
+		ids = append(ids, id)
+	}
+	return ids
 }
 
 type RemoteConfig struct {
@@ -48,8 +72,8 @@ type Configuration struct {
 func (c *Configuration) SetDefaults() {
 	if c.Features == nil {
 		c.Features = &Features{}
-		c.Features.SetDefaults()
 	}
+	c.Features.SetDefaults()
 	if c.Port == 0 {
 		c.Port = 8080
 	}
@@ -61,12 +85,68 @@ func (c *Configuration) SetDefaults() {
 	}
 }
 
-func NewConfiguration() (*Configuration, error) {
-	viper.SetConfigName("config") // name of config file (without extension)
-	viper.SetConfigType("yaml")   // or viper.SetConfigType("json")
-	viper.AddConfigPath(".")      // optionally look for config in the working directory
+func envInt(name string, dst *int) error {
+	s := os.Getenv(name)
+	if s == "" {
+		return nil
+	}
+	v, err := strconv.Atoi(s)
+	if err != nil {
+		return fmt.Errorf("%s: %w", name, err)
+	}
+	*dst = v
+	return nil
+}
 
-	if err := viper.ReadInConfig(); err != nil {
+func applyEnv(config *Configuration) error {
+	if err := envInt("PORT", &config.Port); err != nil {
+		return err
+	}
+	if err := envInt("CERT_FETCH_INTERVAL_SECONDS", &config.CertFetchIntervalSeconds); err != nil {
+		return err
+	}
+
+	logLevel := os.Getenv("LOG_LEVEL")
+	if logLevel != "" {
+		config.LogLevel = logLevel
+	}
+
+	saKeyPath := os.Getenv("SA_KEY_PATH")
+	if saKeyPath != "" {
+		config.SAKeyPath = saKeyPath
+	}
+
+	cm := config.Features.CertificateManager
+	certID := os.Getenv("CERTIFICATE_ID")
+	if certID != "" {
+		cm.Enabled = true
+		cm.CertificateId = certID
+	}
+	certIDs := os.Getenv("CERTIFICATE_IDS")
+	if certIDs != "" {
+		cm.Enabled = true
+		cm.CertificateIds = strings.Split(certIDs, ",")
+	}
+	// TODO: implement remote config when YDB support Coordination Service in Serverless
+	//remoteConfig := os.Getenv("REMOTE_CONFIG")
+	//if remoteConfig != "" {
+	//	config.Features.RemoteConfig.Enabled = true
+	//	config.Features.RemoteConfig.YdbEndpoint = remoteConfig
+	//}
+	return nil
+}
+
+func NewConfiguration() (*Configuration, error) {
+	return load(".")
+}
+
+func load(dir string) (*Configuration, error) {
+	v := viper.New()
+	v.SetConfigName("config") // name of config file (without extension)
+	v.SetConfigType("yaml")
+	v.AddConfigPath(dir)
+
+	if err := v.ReadInConfig(); err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
 			// Config file not found; ignore error if desired
 		} else {
@@ -76,36 +156,17 @@ func NewConfiguration() (*Configuration, error) {
 	}
 
 	var config Configuration
-	if err := viper.Unmarshal(&config); err != nil {
+	if err := v.Unmarshal(&config); err != nil {
 		return nil, err
 	}
 	config.SetDefaults()
 
-	port := os.Getenv("PORT")
-	if port != "" {
-		v, err := strconv.Atoi(port)
-		if err != nil {
-			return nil, err
-		}
-		config.Port = v
+	if err := applyEnv(&config); err != nil {
+		return nil, err
 	}
-
-	logLevel := os.Getenv("LOG_LEVEL")
-	if logLevel != "" {
-		config.LogLevel = logLevel
+	if config.CertFetchIntervalSeconds <= 0 {
+		return nil, fmt.Errorf("certFetchIntervalSeconds must be positive, got %d", config.CertFetchIntervalSeconds)
 	}
-
-	certID := os.Getenv("CERTIFICATE_ID")
-	if certID != "" {
-		config.Features.CertificateManager.Enabled = true
-		config.Features.CertificateManager.CertificateId = certID
-	}
-	// TODO: implement remote config when YDB support Coordination Service in Serverless
-	//remoteConfig := os.Getenv("REMOTE_CONFIG")
-	//if remoteConfig != "" {
-	//	config.Features.RemoteConfig.Enabled = true
-	//	config.Features.RemoteConfig.YdbEndpoint = remoteConfig
-	//}
 
 	return &config, nil
 }

@@ -44,7 +44,7 @@ var setCmd = &cobra.Command{
 			//return
 		}
 		fmt.Printf("Node scheme: %s\n", scheme)
-		fmt.Printf("Node config: %s\n", nodeCfg)
+		fmt.Printf("Node config: %v\n", nodeCfg)
 
 		if scheme == nil {
 			err := db.Coordination().CreateNode(ctx, "/traefik", coordination.NodeConfig{

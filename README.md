@@ -42,7 +42,9 @@ certFetchIntervalSeconds: 300  # How often to refresh certificates (default: 300
 features:
   certificateManager:
     enabled: true
-    certificateId: "your-certificate-id"  # Yandex Cloud Certificate Manager ID
+    certificateIds:  # Yandex Cloud Certificate Manager IDs
+      - "your-certificate-id"
+      - "another-certificate-id"
 ```
 
 ### Configuration Options
@@ -51,15 +53,15 @@ features:
 |--------|---------------------|---------|-------------|
 | `port` | `PORT` | `8080` | HTTP server port |
 | `logLevel` | `LOG_LEVEL` | `info` | Logging level |
-| `saKeyPath` | - | - | Path to Yandex Cloud service account key file |
-| `certFetchIntervalSeconds` | - | `300` | Certificate refresh interval in seconds |
+| `saKeyPath` | `SA_KEY_PATH` | - | Path to Yandex Cloud service account key file |
+| `certFetchIntervalSeconds` | `CERT_FETCH_INTERVAL_SECONDS` | `300` | Certificate refresh interval in seconds |
 | `features.certificateManager.enabled` | - | `false` | Enable Certificate Manager integration |
-| `features.certificateManager.certificateId` | `CERTIFICATE_ID` | - | Yandex Cloud Certificate ID |
+| `features.certificateManager.certificateIds` | `CERTIFICATE_IDS` (comma-separated) | - | Yandex Cloud Certificate IDs |
+| `features.certificateManager.certificateId` | `CERTIFICATE_ID` | - | Single Certificate ID (legacy, merged into the list) |
 
 ### Environment Variables
 
-Environment variables take precedence over configuration file values. You can also use Yandex Cloud instance metadata for authentication when running on Yandex Cloud Compute instances.
-
+Environment variables take precedence over configuration file values. Setting `CERTIFICATE_ID` or `CERTIFICATE_IDS` enables the Certificate Manager integration. You can also use Yandex Cloud instance metadata for authentication when running on Yandex Cloud Compute instances.
 ## Usage
 
 ### Running with Docker
@@ -76,7 +78,8 @@ Or using environment variables:
 ```bash
 docker run -p 8080:8080 \
   -e PORT=8080 \
-  -e CERTIFICATE_ID=your-cert-id \
+  -e CERTIFICATE_IDS=your-cert-id,another-cert-id \
+  -e SA_KEY_PATH=/app/key.json \
   -e LOG_LEVEL=debug \
   -v $(pwd)/key.json:/app/key.json \
   ghcr.io/nikolaymatrosov/yc-traefik-http-provider:latest
@@ -117,11 +120,13 @@ Example response:
 }
 ```
 
+All configured certificates are returned. If a refresh fails, the last successfully fetched content is kept. Until every configured certificate has been fetched at least once, `/config` responds with `503` — Traefik then keeps its previous configuration instead of dropping TLS.
+
 ## Development
 
 ### Prerequisites
 
-- Go 1.23 or later
+- Go 1.27 or later
 - Docker (optional)
 
 ### Building

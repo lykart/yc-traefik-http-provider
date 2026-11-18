@@ -53,7 +53,7 @@ dockers_v2:
   - id: yc-provider-docker
     dockerfile: Dockerfile.goreleaser
     images:
-      - "ghcr.io/nikolaymatrosov/yc-traefik-http-provider"
+      - "ghcr.io/lykart/yc-traefik-http-provider"
     tags:
       - "{{ .Version }}"
       - "latest"
