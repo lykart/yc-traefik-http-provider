@@ -6,7 +6,8 @@ FROM alpine:3.24
 WORKDIR /app
 
 # Copy the Pre-built binary file
-COPY yc-provider .
+ARG TARGETPLATFORM
+COPY $TARGETPLATFORM/yc-provider .
 COPY config.yaml /app/config.yaml
 
 # Command to run the executable

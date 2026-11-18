@@ -57,6 +57,8 @@ dockers_v2:
     tags:
       - "{{ .Version }}"
       - "latest"
+    platforms:
+      - linux/amd64
     labels:
       "org.opencontainers.image.created": "{{.Date}}"
       "org.opencontainers.image.title": "{{.ProjectName}}"
